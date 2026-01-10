@@ -99,7 +99,8 @@ async function fetchWeatherData(lat: number, lon: number): Promise<WeatherData |
     }
 
     try {
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+        // Use our internal API proxy to bypass CORS restrictions
+        const url = `/api/weather?lat=${lat}&lon=${lon}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -108,16 +109,13 @@ async function fetchWeatherData(lat: number, lon: number): Promise<WeatherData |
         });
 
         if (!response.ok) {
-            throw new Error(`OpenWeather API error: ${response.status}`);
+            const errorData = await response.json();
+            console.error(`Weather API proxy error: ${response.status}`, errorData);
+            throw new Error(`Weather API error: ${response.status}`);
         }
 
-        const data: OpenWeatherResponse = await response.json();
-
-        return {
-            temp_c: Math.round((data.main.temp - 273.15) * 10) / 10, // Convert Kelvin to Celsius
-            condition: data.weather[0]?.main || 'Unknown',
-            humidity: data.main.humidity,
-        };
+        const data: WeatherData = await response.json();
+        return data;
     } catch (error) {
         console.error('❌ Failed to fetch weather data:', error);
         return null;
@@ -182,7 +180,7 @@ function getMockWeatherData(lat: number, lon: number): WeatherData {
     // Tropical zone (0-23.5°)
     if (absLat < 23.5) {
         return {
-            temp_c: 28 + Math.random() * 4, // 28-32°C
+            temp_c: Number((28 + Math.random() * 4).toFixed(2)), // 28-32°C
             condition: Math.random() > 0.5 ? 'Clear' : 'Partly Cloudy',
             humidity: 70 + Math.floor(Math.random() * 20), // 70-90%
         };
@@ -191,7 +189,7 @@ function getMockWeatherData(lat: number, lon: number): WeatherData {
     // Temperate zone (23.5-66.5°)
     if (absLat < 66.5) {
         return {
-            temp_c: 15 + Math.random() * 15, // 15-30°C
+            temp_c: Number((15 + Math.random() * 15).toFixed(2)), // 15-30°C
             condition: ['Clear', 'Partly Cloudy', 'Cloudy'][Math.floor(Math.random() * 3)],
             humidity: 50 + Math.floor(Math.random() * 30), // 50-80%
         };
@@ -199,7 +197,7 @@ function getMockWeatherData(lat: number, lon: number): WeatherData {
 
     // Polar zone (66.5-90°)
     return {
-        temp_c: -5 + Math.random() * 15, // -5-10°C
+        temp_c: Number((-5 + Math.random() * 15).toFixed(2)), // -5-10°C
         condition: Math.random() > 0.5 ? 'Cloudy' : 'Snow',
         humidity: 60 + Math.floor(Math.random() * 20), // 60-80%
     };

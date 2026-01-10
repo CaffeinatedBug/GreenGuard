@@ -586,7 +586,7 @@ export default function SimulateAuditModal({
                                 <div className="bg-slate-700/50 rounded-lg p-3">
                                     <p className="text-xs text-slate-400">Weather</p>
                                     <p className="text-white font-semibold">
-                                        {contextData?.weather.temp_c}°C {contextData?.weather.condition}
+                                        {contextData?.weather.temp_c.toFixed(2)}°C {contextData?.weather.condition}
                                     </p>
                                 </div>
                                 <div className="bg-slate-700/50 rounded-lg p-3">

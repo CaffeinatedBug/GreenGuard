@@ -11,6 +11,7 @@ import ActionCenter from '@/components/dashboard/ActionCenter';
 import StatsDashboard from '@/components/dashboard/StatsDashboard';
 import AuditHistory from '@/components/dashboard/AuditHistory';
 import SimulateAuditModal from '@/components/dashboard/SimulateAuditModal';
+import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 import { fetchAllSuppliers, fetchRecentIotLogs, fetchPendingAudits, updateAuditWithHumanAction } from '@/lib/db-helpers';
 import type { Supplier, ChartDataPoint, AuditEventWithDetails } from '@/types/database';
 import type { AuditResult } from '@/lib/agents/auditor-agent';
@@ -39,7 +40,7 @@ export default function Home() {
 
       if (error) {
         console.error('Error loading suppliers:', error);
-        setAgentLogs(prev => [...prev, `❌ Error loading suppliers: ${error.message}`]);
+        setAgentLogs(prev => [...prev, `❌ Error loading suppliers: ${error.message} `]);
         setLoading(false);
         return;
       }
@@ -127,9 +128,20 @@ export default function Home() {
 
   // Handle verification
   const handleVerify = async (auditId: string) => {
-    toast.loading('Verifying audit...');
+    const loadingToast = toast.loading('Verifying audit...');
     setAgentLogs(prev => [...prev, `✅ Human Action: Approving audit ${auditId.slice(0, 8)}...`]);
+
+    // Auto-dismiss after 2 seconds as fallback
+    const autoCloseTimer = setTimeout(() => {
+      toast.dismiss(loadingToast);
+    }, 2000);
+
     const { data, error } = await updateAuditWithHumanAction(auditId, 'APPROVED');
+
+    // Clear the auto-close timer
+    clearTimeout(autoCloseTimer);
+    // Immediately dismiss the loading toast
+    toast.dismiss(loadingToast);
 
     if (error) {
       console.error('Error verifying audit:', error);
@@ -146,10 +158,20 @@ export default function Home() {
 
   // Handle flag action
   const handleFlag = async (auditId: string) => {
-    toast.loading('Flagging supplier...');
+    const loadingToast = toast.loading('Flagging supplier...');
     setAgentLogs(prev => [...prev, `🚩 Human Action: Flagging audit ${auditId.slice(0, 8)}...`]);
 
+    // Auto-dismiss after 2 seconds as fallback
+    const autoCloseTimer = setTimeout(() => {
+      toast.dismiss(loadingToast);
+    }, 2000);
+
     const { error } = await updateAuditWithHumanAction(auditId, 'FLAGGED');
+
+    // Clear the auto-close timer
+    clearTimeout(autoCloseTimer);
+    // Immediately dismiss the loading toast
+    toast.dismiss(loadingToast);
 
     if (error) {
       console.error('Error updating audit:', error);
@@ -171,7 +193,7 @@ export default function Home() {
   const handleSelectSupplier = (supplierId: string) => {
     const supplier = suppliers.find(s => s.id === supplierId);
     setSelectedSupplierId(supplierId);
-    setAgentLogs(prev => [...prev, `🔄 Switched to ${supplier?.name || 'supplier'}`]);
+    setAgentLogs(prev => [...prev, `🔄 Switched to ${supplier?.name || 'supplier'} `]);
   };
 
   // Handle simulate IoT button click - opens the new modal
@@ -217,7 +239,19 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="relative min-h-screen bg-slate-900 overflow-hidden">
+      {/* Global Dotted Glow Background */}
+      <DottedGlowBackground
+        className="fixed inset-0 pointer-events-none opacity-30"
+        gap={25}
+        radius={2}
+        color="rgba(16, 185, 129, 0.4)"
+        glowColor="rgba(16, 185, 129, 0.7)"
+        speedMin={0.05}
+        speedMax={0.3}
+        backgroundOpacity={0}
+      />
+
       <Navbar
         notificationCount={notificationCount}
         pendingAudits={pendingAudits}
@@ -225,7 +259,7 @@ export default function Home() {
         onFlag={handleFlag}
       />
 
-      <div className="flex">
+      <div className="relative flex">
         {/* Left Sidebar - Suppliers */}
         <SupplierSidebar
           suppliers={suppliers}

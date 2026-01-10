@@ -2,8 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, CheckCircle, XCircle, AlertTriangle, Clock, TrendingUp } from 'lucide-react';
+import { Bell, CheckCircle, XCircle, AlertTriangle, Clock, TrendingUp, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import type { AuditEventWithDetails } from '@/types/database';
 import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
@@ -19,6 +20,7 @@ export default function NotificationPanel({
     onVerify,
     onFlag,
 }: NotificationPanelProps) {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [selectedAudit, setSelectedAudit] = useState<AuditEventWithDetails | null>(null);
 
@@ -266,30 +268,46 @@ export default function NotificationPanel({
                                                                     </div>
 
                                                                     {/* Action Buttons */}
-                                                                    <div className="flex gap-2">
+                                                                    <div className="flex flex-col gap-2">
+                                                                        <div className="flex gap-2">
+                                                                            <motion.button
+                                                                                whileHover={{ scale: 1.02 }}
+                                                                                whileTap={{ scale: 0.98 }}
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleApprove(audit);
+                                                                                }}
+                                                                                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
+                                                                            >
+                                                                                <CheckCircle className="w-4 h-4" />
+                                                                                Approve
+                                                                            </motion.button>
+                                                                            <motion.button
+                                                                                whileHover={{ scale: 1.02 }}
+                                                                                whileTap={{ scale: 0.98 }}
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleReject(audit);
+                                                                                }}
+                                                                                className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                                                                            >
+                                                                                <XCircle className="w-4 h-4" />
+                                                                                Flag
+                                                                            </motion.button>
+                                                                        </div>
+
+                                                                        {/* More Information Button */}
                                                                         <motion.button
                                                                             whileHover={{ scale: 1.02 }}
                                                                             whileTap={{ scale: 0.98 }}
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                handleApprove(audit);
+                                                                                router.push(`/audit/${audit.id}`);
                                                                             }}
-                                                                            className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
+                                                                            className="w-full bg-gradient-to-r from-purple-600/80 to-pink-600/80 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 border border-purple-400/30"
                                                                         >
-                                                                            <CheckCircle className="w-4 h-4" />
-                                                                            Approve
-                                                                        </motion.button>
-                                                                        <motion.button
-                                                                            whileHover={{ scale: 1.02 }}
-                                                                            whileTap={{ scale: 0.98 }}
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleReject(audit);
-                                                                            }}
-                                                                            className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
-                                                                        >
-                                                                            <XCircle className="w-4 h-4" />
-                                                                            Flag
+                                                                            <Info className="w-4 h-4" />
+                                                                            More Information
                                                                         </motion.button>
                                                                     </div>
                                                                 </motion.div>
@@ -316,3 +334,4 @@ export default function NotificationPanel({
         </div>
     );
 }
+

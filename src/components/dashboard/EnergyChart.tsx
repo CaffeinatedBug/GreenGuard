@@ -22,7 +22,7 @@ export default function EnergyChart({ data, onSimulate, simulating, supplierName
   }));
 
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
+    <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold text-white">Real-Time Energy Consumption</h2>
@@ -35,11 +35,10 @@ export default function EnergyChart({ data, onSimulate, simulating, supplierName
             <button
               onClick={onSimulate}
               disabled={simulating}
-              className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all ${
-                simulating
-                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-              }`}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all ${simulating
+                ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                }`}
             >
               <Zap className={`w-4 h-4 ${simulating ? 'animate-pulse' : ''}`} />
               {simulating ? 'Simulating...' : 'Simulate IoT'}

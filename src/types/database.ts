@@ -47,6 +47,7 @@ export interface AuditEventWithDetails extends AuditEvent {
   supplier_name?: string;
   timestamp?: string;
   energy_kwh?: number;
+  iot_logs?: IotLog;
 }
 
 // Interface for chart data

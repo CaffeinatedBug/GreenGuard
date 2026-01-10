@@ -2,13 +2,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, ChevronDown, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import type { AuditEventWithDetails } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 
 export default function AuditHistory() {
+    const router = useRouter();
     const [audits, setAudits] = useState<AuditEventWithDetails[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -118,7 +120,7 @@ export default function AuditHistory() {
     }
 
     return (
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
+        <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white">Audit History</h3>
                 <span className="text-sm text-slate-400">{audits.length} recent audits</span>
@@ -214,6 +216,20 @@ export default function AuditHistory() {
                                                             )}
                                                         </div>
                                                     )}
+
+                                                    {/* More Information Button */}
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.02 }}
+                                                        whileTap={{ scale: 0.98 }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            router.push(`/audit/${audit.id}`);
+                                                        }}
+                                                        className="mt-4 w-full bg-gradient-to-r from-purple-600/80 to-pink-600/80 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 border border-purple-400/30"
+                                                    >
+                                                        <Info className="w-4 h-4" />
+                                                        More Information
+                                                    </motion.button>
                                                 </div>
                                             </motion.div>
                                         )}

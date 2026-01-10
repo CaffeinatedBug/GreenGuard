@@ -1,7 +1,5 @@
-// src/components/dashboard/ActionCenter.tsx
-'use client';
-
-import { CheckCircle, AlertTriangle, Flag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { CheckCircle, AlertTriangle, Flag, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import type { AuditEventWithDetails } from '@/types/database';
 
@@ -16,6 +14,7 @@ export default function ActionCenter({
   onVerify,
   onFlag,
 }: ActionCenterProps) {
+  const router = useRouter();
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'WARNING':
@@ -39,7 +38,7 @@ export default function ActionCenter({
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
+    <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold text-white">Action Center</h2>
@@ -107,20 +106,31 @@ export default function ActionCenter({
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onVerify(audit.id)}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Verify
+                  </button>
+                  <button
+                    onClick={() => onFlag(audit.id)}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Flag className="w-4 h-4" />
+                    Flag
+                  </button>
+                </div>
+
+                {/* More Information Button */}
                 <button
-                  onClick={() => onVerify(audit.id)}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  onClick={() => router.push(`/audit/${audit.id}`)}
+                  className="w-full bg-gradient-to-r from-purple-600/80 to-pink-600/80 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 border border-purple-400/30"
                 >
-                  <CheckCircle className="w-4 h-4" />
-                  Verify
-                </button>
-                <button
-                  onClick={() => onFlag(audit.id)}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Flag className="w-4 h-4" />
-                  Flag
+                  <Info className="w-4 h-4" />
+                  More Information
                 </button>
               </div>
             </div>

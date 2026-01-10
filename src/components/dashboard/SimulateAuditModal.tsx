@@ -2,11 +2,12 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Zap, Upload, Check, AlertCircle, Loader2, Cloud, Leaf, FileText, Database, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Zap, Check, AlertCircle, Loader2, Cloud, Leaf, FileText, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { runAudit, type AuditResult } from '@/lib/agents/auditor-agent';
 import { getContextData, type ContextData } from '@/lib/agents/context-agent';
 import { insertIotLog, createAuditEvent } from '@/lib/db-helpers';
 import { supabase } from '@/lib/supabase';
+import { FileUpload } from '@/components/ui/file-upload';
 import type { Supplier } from '@/types/database';
 
 interface SimulateAuditModalProps {
@@ -366,28 +367,19 @@ export default function SimulateAuditModal({
                                 </h3>
 
                                 {/* File Upload (Optional) */}
-                                <div>
-                                    <label className="block text-sm text-slate-400 mb-2">
-                                        Upload Bill PDF (Optional)
-                                    </label>
-                                    <div className="border-2 border-dashed border-slate-600 rounded-lg p-3 hover:border-emerald-500 transition-colors">
-                                        <input
-                                            type="file"
-                                            accept=".pdf,.jpg,.jpeg,.png"
-                                            onChange={handleFileChange}
-                                            className="hidden"
-                                            id="bill-upload"
-                                        />
-                                        <label
-                                            htmlFor="bill-upload"
-                                            className="cursor-pointer flex items-center justify-center gap-2"
-                                        >
-                                            <Upload className="w-5 h-5 text-slate-400" />
-                                            <span className="text-sm text-slate-400">
-                                                {billData.file ? billData.file.name : 'Click to upload'}
-                                            </span>
-                                        </label>
-                                    </div>
+                                <div className="border border-slate-600 rounded-xl overflow-hidden bg-slate-900/50">
+                                    <FileUpload
+                                        onChange={(files) => {
+                                            if (files[0]) {
+                                                setBillData({ ...billData, file: files[0] });
+                                                onLog(`📎 [BillReaderAgent] Bill file attached: ${files[0].name}`);
+                                            }
+                                        }}
+                                        accept={{
+                                            'application/pdf': ['.pdf'],
+                                            'image/*': ['.jpg', '.jpeg', '.png']
+                                        }}
+                                    />
                                 </div>
 
                                 {/* Billing Period - Calendar Picker */}

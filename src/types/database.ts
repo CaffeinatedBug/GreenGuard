@@ -33,6 +33,12 @@ export interface AuditEvent {
   confidence_score: number;
   human_action?: HumanAction;
   human_action_timestamp?: string;
+  agent_logs?: Array<{
+    timestamp: string;
+    agent: string;
+    message: string;
+    status: string;
+  }>;
   created_at: string;
 }
 

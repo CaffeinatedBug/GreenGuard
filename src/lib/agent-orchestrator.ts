@@ -43,13 +43,13 @@ export class AgentOrchestrator {
   async processIotLog(logId: string): Promise<ProcessResult> {
     // Reset logs for this run
     this.logs = [];
-    
+
     this.log('System', `🚀 Agent pipeline initiated for log ${logId.slice(0, 8)}...`, 'info');
 
     try {
       // STEP 1 - DATA COLLECTION
       this.log('IngestionAgent', 'Fetching IoT log data...', 'info');
-      
+
       const { data: iotLogs, error: logError } = await supabase
         .from('iot_logs')
         .select('*')
@@ -89,7 +89,7 @@ export class AgentOrchestrator {
       if (!histError && historicalLogs && historicalLogs.length > 0) {
         const sum = historicalLogs.reduce((acc, log) => acc + Number(log.energy_kwh), 0);
         historicalAverage = sum / historicalLogs.length;
-        
+
         this.log(
           'ContextAgent',
           `📊 Historical average (last 10 readings): ${historicalAverage.toFixed(2)} kWh`,
@@ -166,7 +166,9 @@ export class AgentOrchestrator {
       // STEP 5 - AI ANALYSIS
       this.log('AuditorAgent', '🤖 Invoking Gemini AI for analysis...', 'info');
 
-      let finalStatus = preliminaryStatus;
+      // Type for statuses we work with (narrower than AuditStatus to exclude 'REJECTED')
+      type WorkingStatus = 'VERIFIED' | 'WARNING' | 'ANOMALY';
+      let finalStatus: WorkingStatus = preliminaryStatus as WorkingStatus;
       let aiReasoning = 'Rule-based assessment only';
       let confidence = 75;
 
@@ -199,10 +201,19 @@ export class AgentOrchestrator {
         };
 
         if (severityOrder[aiResult.status] > severityOrder[preliminaryStatus]) {
-          finalStatus = aiResult.status as AuditStatus;
+          // Map AI status to WorkingStatus (NORMAL -> VERIFIED, filter out PENDING)
+          let mappedStatus: WorkingStatus;
+          if (aiResult.status === 'NORMAL') {
+            mappedStatus = 'VERIFIED';
+          } else if (aiResult.status === 'PENDING') {
+            mappedStatus = preliminaryStatus as WorkingStatus; // Fall back to preliminary
+          } else {
+            mappedStatus = aiResult.status as WorkingStatus;
+          }
+          finalStatus = mappedStatus;
           this.log('AuditorAgent', `📊 Using AI assessment: ${finalStatus}`, 'info');
         } else {
-          finalStatus = preliminaryStatus;
+          finalStatus = preliminaryStatus as WorkingStatus;
           this.log('AuditorAgent', `📊 Using rule-based assessment: ${finalStatus}`, 'info');
         }
 
@@ -212,7 +223,7 @@ export class AgentOrchestrator {
       } catch (aiError) {
         console.error('[AgentOrchestrator] AI analysis error:', aiError);
         this.log('AuditorAgent', '⚠️  AI analysis unavailable, using rule-based assessment', 'warning');
-        finalStatus = preliminaryStatus;
+        finalStatus = preliminaryStatus as WorkingStatus;
         aiReasoning = `Rule-based analysis: Reading is ${variance.toFixed(1)}% ${variance > 0 ? 'over' : 'under'} the maximum allowed load. ${contextAnalysis.reason}`;
       }
 
@@ -247,7 +258,7 @@ export class AgentOrchestrator {
       }
 
       // STEP 8 - FINAL STATUS
-      if (finalStatus === 'ANOMALY' || finalStatus === 'WARNING' || finalStatus === 'PENDING') {
+      if (finalStatus === 'ANOMALY' || finalStatus === 'WARNING') {
         this.log('System', `🔔 Notification: Audit requires human review (${finalStatus})`, 'warning');
       } else {
         this.log('System', `✅ Audit complete: ${finalStatus} - No action required`, 'success');
@@ -263,7 +274,7 @@ export class AgentOrchestrator {
     } catch (error) {
       console.error('Agent orchestration error:', error);
       this.log('System', `❌ Pipeline failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-      
+
       return {
         success: false,
         logs: this.logs,

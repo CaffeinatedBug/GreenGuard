@@ -1,17 +1,17 @@
 // src/components/dashboard/Navbar.tsx
 'use client';
 
-import { Bell } from 'lucide-react';
+import NotificationPanel from './NotificationPanel';
+import type { AuditEventWithDetails } from '@/types/database';
 
 interface NavbarProps {
   notificationCount: number;
+  pendingAudits: AuditEventWithDetails[];
+  onVerify: (auditId: string) => void;
+  onFlag: (auditId: string) => void;
 }
 
-export default function Navbar({ notificationCount }: NavbarProps) {
-  const handleNotificationClick = () => {
-    console.log('Notification bell clicked');
-  };
-
+export default function Navbar({ notificationCount, pendingAudits, onVerify, onFlag }: NavbarProps) {
   return (
     <nav className="bg-slate-800 border-b border-slate-700 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -37,18 +37,11 @@ export default function Navbar({ notificationCount }: NavbarProps) {
           </div>
         </div>
 
-        <button
-          onClick={handleNotificationClick}
-          className="relative p-2 hover:bg-slate-700 rounded-lg transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell className="w-6 h-6 text-slate-300" />
-          {notificationCount > 0 && (
-            <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-              {notificationCount > 9 ? '9+' : notificationCount}
-            </span>
-          )}
-        </button>
+        <NotificationPanel
+          pendingAudits={pendingAudits}
+          onVerify={onVerify}
+          onFlag={onFlag}
+        />
       </div>
     </nav>
   );

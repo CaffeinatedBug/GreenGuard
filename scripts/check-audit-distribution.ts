@@ -8,9 +8,9 @@ async function checkAuditDistribution() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const supabase = createClient(supabaseUrl, supabaseKey);
-  
+
   console.log('📊 Checking audit distribution by company...\n');
-  
+
   const { data: audits } = await supabase
     .from('audit_events')
     .select(`
@@ -24,15 +24,15 @@ async function checkAuditDistribution() {
     `)
     .in('status', ['PENDING', 'WARNING', 'ANOMALY'])
     .is('human_action', null);
-  
+
   const grouped: Record<string, any[]> = {};
-  
-  audits?.forEach(audit => {
-    const company = audit.iot_logs?.suppliers?.name || 'Unknown';
+
+  audits?.forEach((audit: any) => {
+    const company = (audit.iot_logs as any)?.suppliers?.name || 'Unknown';
     if (!grouped[company]) grouped[company] = [];
     grouped[company].push(audit);
   });
-  
+
   console.log('═'.repeat(60));
   Object.entries(grouped).forEach(([company, companyAudits]) => {
     console.log(`\n🏭 ${company}: ${companyAudits.length} pending audit(s)`);

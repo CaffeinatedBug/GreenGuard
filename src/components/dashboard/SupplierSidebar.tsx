@@ -1,26 +1,20 @@
 // src/components/dashboard/SupplierSidebar.tsx
 'use client';
 
-import { useState } from 'react';
-import { MapPin, Activity, Upload } from 'lucide-react';
+import { MapPin, Activity } from 'lucide-react';
 import type { Supplier } from '@/types/database';
-import BillUploadForm from './BillUploadForm';
 
 interface SupplierSidebarProps {
   suppliers: Supplier[];
   selectedSupplierId: string | null;
   onSelectSupplier: (supplierId: string) => void;
-  onBillUpdated?: () => void;
 }
 
 export default function SupplierSidebar({
   suppliers,
   selectedSupplierId,
   onSelectSupplier,
-  onBillUpdated,
 }: SupplierSidebarProps) {
-  const [uploadingFor, setUploadingFor] = useState<Supplier | null>(null);
-
   // Simple status indicator (can be enhanced with real data)
   const getStatusColor = (supplierId: string) => {
     // For demo: alternate between green, yellow, red
@@ -53,11 +47,10 @@ export default function SupplierSidebar({
           suppliers.map((supplier) => (
             <div
               key={supplier.id}
-              className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                selectedSupplierId === supplier.id
+              className={`p-4 rounded-lg border transition-all cursor-pointer ${selectedSupplierId === supplier.id
                   ? 'bg-slate-700 border-emerald-500'
                   : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700/50'
-              }`}
+                }`}
               onClick={() => onSelectSupplier(supplier.id)}
             >
               <div className="flex items-start justify-between mb-2">
@@ -89,35 +82,11 @@ export default function SupplierSidebar({
                   </p>
                 </div>
               </div>
-
-              {/* Upload Bill Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUploadingFor(supplier);
-                }}
-                className="w-full mt-3 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded text-xs text-emerald-400 flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <Upload className="w-3 h-3" />
-                Upload Bill
-              </button>
             </div>
           ))
         )}
       </div>
-
-      {/* Bill Upload Modal */}
-      {uploadingFor && (
-        <BillUploadForm
-          supplierId={uploadingFor.id}
-          supplierName={uploadingFor.name}
-          onSuccess={() => {
-            setUploadingFor(null);
-            if (onBillUpdated) onBillUpdated();
-          }}
-          onCancel={() => setUploadingFor(null)}
-        />
-      )}
     </div>
   );
 }
+

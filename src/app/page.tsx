@@ -19,6 +19,7 @@ export default function Home() {
   const [pendingAudits, setPendingAudits] = useState<AuditEventWithDetails[]>([]);
   const [notificationCount, setNotificationCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [simulating, setSimulating] = useState(false);
 
   // Fetch suppliers on mount
   useEffect(() => {
@@ -168,6 +169,84 @@ export default function Home() {
     }
   };
 
+  // Simulate IoT sensor reading
+  const handleSimulateIoT = async () => {
+    if (!selectedSupplierId || simulating) return;
+    
+    const supplier = suppliers.find(s => s.id === selectedSupplierId);
+    if (!supplier) return;
+    
+    setSimulating(true);
+    setAgentLogs(prev => [...prev, `🔬 Simulating IoT reading for ${supplier.name}...`]);
+    
+    try {
+      // Generate mock IoT data
+      const maxLoad = supplier.bill_max_load_kwh;
+      const shouldAnomaly = Math.random() > 0.5; // 50% chance of anomaly
+      
+      let energy_kwh;
+      if (shouldAnomaly) {
+        energy_kwh = maxLoad * (1.05 + Math.random() * 0.25); // 5-30% over limit
+      } else {
+        energy_kwh = maxLoad * (0.7 + Math.random() * 0.2); // 70-90% of limit
+      }
+      
+      const voltage = 220 + Math.random() * 10;
+      const current_amps = (energy_kwh * 1000) / voltage;
+      const power_watts = energy_kwh * 1000;
+      
+      const payload = {
+        supplierId: selectedSupplierId,
+        timestamp: new Date().toISOString(),
+        energy_kwh: Number(energy_kwh.toFixed(2)),
+        voltage: Number(voltage.toFixed(1)),
+        current_amps: Number(current_amps.toFixed(1)),
+        power_watts: Number(power_watts.toFixed(2)),
+      };
+      
+      setAgentLogs(prev => [...prev, `📡 Sending: ${payload.energy_kwh} kWh (Max: ${maxLoad} kWh)`]);
+      
+      // Send to API
+      const response = await fetch('/api/ingest-iot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to ingest IoT data');
+      }
+      
+      const result = await response.json();
+      setAgentLogs(prev => [...prev, `✅ IoT data ingested successfully`]);
+      setAgentLogs(prev => [...prev, `🤖 AI agent analyzing... (Log ID: ${result.logId.slice(0, 8)}...)`]);
+      
+      // Wait for agent to process (Gemini API can take 3-5 seconds)
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Refresh data
+      const { data: newLogs } = await fetchRecentIotLogs(selectedSupplierId, 20);
+      if (newLogs && newLogs.length > 0) {
+        const chartData: ChartDataPoint[] = newLogs.map(log => ({
+          timestamp: log.timestamp,
+          energy_kwh: Number(log.energy_kwh),
+        })).reverse();
+        setIotLogs(chartData);
+      }
+      
+      setAgentLogs(prev => [...prev, shouldAnomaly 
+        ? `⚠️  Anomaly detected! Check Action Center for new audit` 
+        : `✅ Reading normal, no audit required`
+      ]);
+      
+    } catch (error) {
+      console.error('Error simulating IoT:', error);
+      setAgentLogs(prev => [...prev, `❌ Failed to simulate IoT reading`]);
+    } finally {
+      setSimulating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -197,7 +276,12 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Top - Energy Chart (spans 2 columns) */}
             <div className="lg:col-span-2">
-              <EnergyChart data={iotLogs} />
+              <EnergyChart 
+                data={iotLogs} 
+                onSimulate={handleSimulateIoT}
+                simulating={simulating}
+                supplierName={suppliers.find(s => s.id === selectedSupplierId)?.name}
+              />
             </div>
             
             {/* Right - Action Center */}

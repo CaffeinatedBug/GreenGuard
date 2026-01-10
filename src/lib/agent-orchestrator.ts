@@ -210,6 +210,7 @@ export class AgentOrchestrator {
         confidence = aiResult.confidence;
 
       } catch (aiError) {
+        console.error('[AgentOrchestrator] AI analysis error:', aiError);
         this.log('AuditorAgent', '⚠️  AI analysis unavailable, using rule-based assessment', 'warning');
         finalStatus = preliminaryStatus;
         aiReasoning = `Rule-based analysis: Reading is ${variance.toFixed(1)}% ${variance > 0 ? 'over' : 'under'} the maximum allowed load. ${contextAnalysis.reason}`;

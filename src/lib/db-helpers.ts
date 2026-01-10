@@ -81,7 +81,7 @@ export async function fetchPendingAudits(): Promise<{
           )
         )
       `)
-      .in('status', ['PENDING', 'WARNING'])
+      .in('status', ['PENDING', 'WARNING', 'ANOMALY'])
       .is('human_action', null)
       .order('created_at', { ascending: false });
 

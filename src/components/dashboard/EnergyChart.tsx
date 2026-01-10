@@ -3,13 +3,17 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
+import { Zap } from 'lucide-react';
 import type { ChartDataPoint } from '@/types/database';
 
 interface EnergyChartProps {
   data: ChartDataPoint[];
+  onSimulate?: () => void;
+  simulating?: boolean;
+  supplierName?: string;
 }
 
-export default function EnergyChart({ data }: EnergyChartProps) {
+export default function EnergyChart({ data, onSimulate, simulating, supplierName }: EnergyChartProps) {
   // Format data for recharts
   const formattedData = data.map((point) => ({
     ...point,
@@ -26,9 +30,25 @@ export default function EnergyChart({ data }: EnergyChartProps) {
             {data.length > 0 ? `Last ${data.length} readings` : 'No data available'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
-          <span className="text-sm text-slate-400">Live</span>
+        <div className="flex items-center gap-3">
+          {onSimulate && supplierName && (
+            <button
+              onClick={onSimulate}
+              disabled={simulating}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all ${
+                simulating
+                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
+            >
+              <Zap className={`w-4 h-4 ${simulating ? 'animate-pulse' : ''}`} />
+              {simulating ? 'Simulating...' : 'Simulate IoT'}
+            </button>
+          )}
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
+            <span className="text-sm text-slate-400">Live</span>
+          </div>
         </div>
       </div>
 

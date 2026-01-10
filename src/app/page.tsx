@@ -2,11 +2,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Toaster, toast } from 'sonner';
 import Navbar from '@/components/dashboard/Navbar';
 import SupplierSidebar from '@/components/dashboard/SupplierSidebar';
 import EnergyChart from '@/components/dashboard/EnergyChart';
 import GlassBoxTerminal from '@/components/dashboard/GlassBoxTerminal';
 import ActionCenter from '@/components/dashboard/ActionCenter';
+import StatsDashboard from '@/components/dashboard/StatsDashboard';
+import AuditHistory from '@/components/dashboard/AuditHistory';
 import SimulateAuditModal from '@/components/dashboard/SimulateAuditModal';
 import { fetchAllSuppliers, fetchRecentIotLogs, fetchPendingAudits, updateAuditWithHumanAction } from '@/lib/db-helpers';
 import type { Supplier, ChartDataPoint, AuditEventWithDetails } from '@/types/database';
@@ -87,30 +90,31 @@ export default function Home() {
     loadIotLogs();
   }, [selectedSupplierId]);
 
-  // Fetch pending audits periodically
-  useEffect(() => {
-    async function loadPendingAudits() {
-      const { data, error } = await fetchPendingAudits();
+  // Load pending audits function
+  const loadPendingAudits = async () => {
+    const { data, error } = await fetchPendingAudits();
 
-      if (error) {
-        console.error('Error loading pending audits:', error);
-        return;
-      }
+    if (error) {
+      console.error('Error loading pending audits:', error);
+      return;
+    }
 
-      if (data) {
-        setPendingAudits(data);
-        setNotificationCount(data.length);
+    if (data) {
+      setPendingAudits(data);
+      setNotificationCount(data.length);
 
-        // Log new audits
-        if (data.length > 0 && agentLogs.length > 0) {
-          const newAuditLog = `🔍 AuditorAgent: ${data.length} audit(s) require attention`;
-          if (!agentLogs.includes(newAuditLog)) {
-            setAgentLogs(prev => [...prev, newAuditLog]);
-          }
+      // Log new audits
+      if (data.length > 0 && agentLogs.length > 0) {
+        const newAuditLog = `🔍 AuditorAgent: ${data.length} audit(s) require attention`;
+        if (!agentLogs.includes(newAuditLog)) {
+          setAgentLogs(prev => [...prev, newAuditLog]);
         }
       }
     }
+  };
 
+  // Fetch pending audits periodically
+  useEffect(() => {
     // Initial load
     loadPendingAudits();
 
@@ -118,42 +122,49 @@ export default function Home() {
     const interval = setInterval(loadPendingAudits, 5000);
 
     return () => clearInterval(interval);
-  }, [agentLogs.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Handle verify action
+  // Handle verification
   const handleVerify = async (auditId: string) => {
+    toast.loading('Verifying audit...');
     setAgentLogs(prev => [...prev, `✅ Human Action: Approving audit ${auditId.slice(0, 8)}...`]);
-
-    const { error } = await updateAuditWithHumanAction(auditId, 'APPROVED');
+    const { data, error } = await updateAuditWithHumanAction(auditId, 'APPROVED');
 
     if (error) {
-      console.error('Error updating audit:', error);
+      console.error('Error verifying audit:', error);
+      toast.error('Failed to verify audit');
       setAgentLogs(prev => [...prev, `❌ Failed to approve audit`]);
       return;
     }
 
-    // Remove from pending list
-    setPendingAudits(prev => prev.filter(audit => audit.id !== auditId));
-    setNotificationCount(prev => Math.max(0, prev - 1));
+    toast.success('✅ Audit Verified Successfully', {
+      description: 'This supplier data has been approved',
+    });
     setAgentLogs(prev => [...prev, `✅ Audit approved and marked as VERIFIED`]);
   };
 
   // Handle flag action
   const handleFlag = async (auditId: string) => {
+    toast.loading('Flagging supplier...');
     setAgentLogs(prev => [...prev, `🚩 Human Action: Flagging audit ${auditId.slice(0, 8)}...`]);
 
     const { error } = await updateAuditWithHumanAction(auditId, 'FLAGGED');
 
     if (error) {
       console.error('Error updating audit:', error);
+      toast.error('Failed to flag audit');
       setAgentLogs(prev => [...prev, `❌ Failed to flag audit`]);
       return;
     }
 
-    // Remove from pending list
-    setPendingAudits(prev => prev.filter(audit => audit.id !== auditId));
-    setNotificationCount(prev => Math.max(0, prev - 1));
-    setAgentLogs(prev => [...prev, `🚩 Audit flagged to supplier for review`]);
+    toast.error('🚩 Supplier Flagged for Review', {
+      description: 'This audit has been marked for investigation',
+    });
+    setAgentLogs(prev => [...prev, `🚩 Audit flagged for supplier review`]);
+
+    // Refresh pending audits
+    loadPendingAudits();
   };
 
   // Handle supplier selection
@@ -224,6 +235,9 @@ export default function Home() {
 
         {/* Main Content Area */}
         <div className="flex-1 p-6">
+          {/* Stats Dashboard - KPI Cards */}
+          <StatsDashboard />
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Top - Energy Chart (spans 2 columns) */}
             <div className="lg:col-span-2">
@@ -248,9 +262,17 @@ export default function Home() {
             <div className="lg:col-span-3">
               <GlassBoxTerminal logs={agentLogs} />
             </div>
+
+            {/* Audit History (spans all columns) */}
+            <div className="lg:col-span-3">
+              <AuditHistory />
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Toast Notifications */}
+      <Toaster position="top-right" richColors closeButton />
 
       {/* Simulate Audit Modal */}
       {showSimulateModal && selectedSupplier && (

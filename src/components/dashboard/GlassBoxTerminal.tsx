@@ -174,7 +174,7 @@ export default function GlassBoxTerminal({ logs }: GlassBoxTerminalProps) {
                                 <div>
                                     <h2 className="text-lg font-semibold bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-2">
                                         <Terminal className="w-5 h-5 text-emerald-400" />
-                                        Glass Box Agent Terminal
+                                        Real-time Agent Terminal
                                     </h2>
                                     <p className="text-xs text-slate-400 mt-0.5">
                                         Real-time AI reasoning & decision transparency

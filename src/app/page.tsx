@@ -10,6 +10,7 @@ import GlassBoxTerminal from '@/components/dashboard/GlassBoxTerminal';
 import ActionCenter from '@/components/dashboard/ActionCenter';
 import StatsDashboard from '@/components/dashboard/StatsDashboard';
 import AuditHistory from '@/components/dashboard/AuditHistory';
+import SupplyChainMap from '@/components/dashboard/SupplyChainMap';
 import SimulateAuditModal from '@/components/dashboard/SimulateAuditModal';
 import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 import { fetchAllSuppliers, fetchRecentIotLogs, fetchPendingAudits, updateAuditWithHumanAction } from '@/lib/db-helpers';
@@ -303,6 +304,11 @@ export default function Home() {
             {/* Bottom - Agent Terminal (spans all columns) */}
             <div className="lg:col-span-3">
               <GlassBoxTerminal logs={agentLogs} />
+            </div>
+
+            {/* Live Supply Chain Map (spans all columns) */}
+            <div className="lg:col-span-3">
+              <SupplyChainMap suppliers={suppliers} />
             </div>
 
             {/* Audit History (spans all columns) */}

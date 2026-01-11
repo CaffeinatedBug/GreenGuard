@@ -116,20 +116,24 @@ Every decision is logged with:
 ## 📸 Screenshots
 
 ### Main Dashboard
-Live energy monitoring with AI-powered anomaly detection  
+Live energy monitoring with KPI cards and supplier sidebar
 ![Dashboard](./screenshots/dashboard.png)
 
-### Anomaly Deep Dive
-Side-by-side comparison with intelligent highlighting  
-![Deep Dive](./screenshots/anomaly-analysis.png)
+### IoT Audit Simulation
+Capture sensor readings from connected ESP32 devices
+![IoT Simulation](./screenshots/iot-simulation.png)
 
-### Supply Chain Map
-Global operations center with geospatial tracking  
-![Map](./screenshots/supply-chain-map.png)
+### Bill Input & Validation
+Upload invoices and enter billing data for AI cross-validation
+![Bill Input](./screenshots/bill-input.png)
 
-### Impact Dashboard
-Sustainability metrics and carbon credit valuation  
-![Impact](./screenshots/impact-dashboard.png)
+### Audit History
+Track all audit events with status and confidence scores
+![Audit History](./screenshots/audit-history.png)
+
+### Real-time Agent Terminal
+Watch AI agents "think" with full reasoning transparency
+![Agent Terminal](./screenshots/agent-terminal.png)
 
 ---
 

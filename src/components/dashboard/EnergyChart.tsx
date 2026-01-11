@@ -41,7 +41,7 @@ export default function EnergyChart({ data, onSimulate, simulating, supplierName
                 }`}
             >
               <Zap className={`w-4 h-4 ${simulating ? 'animate-pulse' : ''}`} />
-              {simulating ? 'Simulating...' : 'Simulate IoT'}
+              {simulating ? 'Running Check...' : 'Trigger Compliance Check'}
             </button>
           )}
           <div className="flex items-center gap-2">

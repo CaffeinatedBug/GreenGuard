@@ -130,17 +130,37 @@ export default function StatsDashboard({ simulatedKwhSaved = 0 }: StatsDashboard
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            whileHover={card.clickable ? { scale: 1.05 } : {}}
+                            whileHover={{
+                                scale: 1.02,
+                                rotateX: 5,
+                                rotateY: -5,
+                                z: 50
+                            }}
                             onClick={card.clickable ? () => setIsModalOpen(true) : undefined}
-                            className={`relative overflow-hidden rounded-xl border ${card.borderColor} bg-gradient-to-br ${card.gradient} backdrop-blur-sm p-5 ${card.clickable ? 'cursor-pointer hover:shadow-lg hover:shadow-emerald-500/20 transition-all' : ''
-                                }`}
+                            className={`relative overflow-hidden rounded-xl border ${card.borderColor} bg-gradient-to-br ${card.gradient} p-5 ${card.clickable ? 'cursor-pointer' : ''}`}
+                            style={{
+                                backdropFilter: 'blur(16px)',
+                                WebkitBackdropFilter: 'blur(16px)',
+                                background: `linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6))`,
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                                transformStyle: 'preserve-3d',
+                                perspective: '1000px',
+                            }}
                         >
+                            {/* Glass reflection effect */}
+                            <div
+                                className="absolute inset-0 opacity-20 pointer-events-none"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%, transparent 100%)',
+                                }}
+                            />
+
                             {/* Shimmer effect */}
                             {loading && (
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
                             )}
 
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between relative z-10">
                                 <div>
                                     <p className="text-sm text-slate-400 font-medium">{card.title}</p>
                                     <motion.p
@@ -148,6 +168,7 @@ export default function StatsDashboard({ simulatedKwhSaved = 0 }: StatsDashboard
                                         initial={{ scale: 0.8, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         className={`text-3xl font-bold ${card.textColor} mt-2`}
+                                        style={{ transform: 'translateZ(20px)' }}
                                     >
                                         {loading ? '—' : card.value}
                                     </motion.p>
@@ -155,7 +176,15 @@ export default function StatsDashboard({ simulatedKwhSaved = 0 }: StatsDashboard
                                         <p className="text-xs text-slate-500 mt-1">{card.subtext}</p>
                                     )}
                                 </div>
-                                <div className={`p-3 rounded-lg bg-slate-900/50 ${card.iconColor}`}>
+                                <div
+                                    className={`p-3 rounded-lg ${card.iconColor}`}
+                                    style={{
+                                        background: 'rgba(15, 23, 42, 0.6)',
+                                        backdropFilter: 'blur(8px)',
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
+                                        transform: 'translateZ(30px)',
+                                    }}
+                                >
                                     <Icon className="w-6 h-6" />
                                 </div>
                             </div>

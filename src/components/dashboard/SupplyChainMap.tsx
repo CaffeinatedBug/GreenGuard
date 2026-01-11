@@ -147,8 +147,11 @@ export default function SupplyChainMap({ suppliers }: SupplyChainMapProps) {
             return;
         }
 
+        // Check if script already exists to prevent duplicate loading
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+
         // Load the Google Maps script
-        if (!window.google?.maps) {
+        if (!window.google?.maps && !existingScript) {
             const script = document.createElement('script');
             script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&v=beta`;
             script.async = true;
@@ -156,8 +159,11 @@ export default function SupplyChainMap({ suppliers }: SupplyChainMapProps) {
             script.onload = () => initMap();
             script.onerror = () => console.error('Failed to load Google Maps script');
             document.head.appendChild(script);
-        } else {
+        } else if (window.google?.maps) {
             initMap();
+        } else if (existingScript) {
+            // Script exists but not loaded yet, wait for it
+            existingScript.addEventListener('load', () => initMap());
         }
     }, []);
 

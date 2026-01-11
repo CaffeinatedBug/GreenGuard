@@ -50,98 +50,111 @@ export default function SupplyChainMap({ suppliers }: SupplyChainMapProps) {
 
     useEffect(() => {
         const initMap = async () => {
-            // Modern approach using importLibrary
-            const { Map, InfoWindow } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
-            const { Marker } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+            try {
+                // Modern approach using importLibrary
+                const { Map, InfoWindow } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
+                const { Marker } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
 
-            if (mapRef.current) {
-                const mapInstance = new Map(mapRef.current, {
-                    center: { lat: 20.5937, lng: 78.9629 }, // India center
-                    zoom: 5,
-                    mapId: 'greenguard-supply-chain-map',
-                    styles: [
-                        {
-                            "elementType": "geometry",
-                            "stylers": [{ "color": "#0f172a" }]
-                        },
-                        {
-                            "elementType": "labels.text.stroke",
-                            "stylers": [{ "color": "#0f172a" }]
-                        },
-                        {
-                            "elementType": "labels.text.fill",
-                            "stylers": [{ "color": "#64748b" }]
-                        },
-                        {
-                            "featureType": "administrative.locality",
-                            "elementType": "labels.text.fill",
-                            "stylers": [{ "color": "#94a3b8" }]
-                        },
-                        {
-                            "featureType": "poi",
-                            "elementType": "labels.text.fill",
-                            "stylers": [{ "color": "#475569" }]
-                        },
-                        {
-                            "featureType": "poi.park",
-                            "elementType": "geometry",
-                            "stylers": [{ "color": "#1e293b" }]
-                        },
-                        {
-                            "featureType": "poi.park",
-                            "elementType": "labels.text.fill",
-                            "stylers": [{ "color": "#475569" }]
-                        },
-                        {
-                            "featureType": "road",
-                            "elementType": "geometry",
-                            "stylers": [{ "color": "#1e293b" }]
-                        },
-                        {
-                            "featureType": "road",
-                            "elementType": "geometry.stroke",
-                            "stylers": [{ "color": "#334155" }]
-                        },
-                        {
-                            "featureType": "road.highway",
-                            "elementType": "geometry",
-                            "stylers": [{ "color": "#1e3a5f" }]
-                        },
-                        {
-                            "featureType": "road.highway",
-                            "elementType": "geometry.stroke",
-                            "stylers": [{ "color": "#1e3a5f" }]
-                        },
-                        {
-                            "featureType": "transit",
-                            "elementType": "geometry",
-                            "stylers": [{ "color": "#1e293b" }]
-                        },
-                        {
-                            "featureType": "water",
-                            "elementType": "geometry",
-                            "stylers": [{ "color": "#1e40af" }]
-                        },
-                        {
-                            "featureType": "water",
-                            "elementType": "labels.text.fill",
-                            "stylers": [{ "color": "#475569" }]
-                        }
-                    ],
-                });
+                if (mapRef.current) {
+                    const mapInstance = new Map(mapRef.current, {
+                        center: { lat: 20.5937, lng: 78.9629 }, // India center
+                        zoom: 5,
+                        mapId: 'greenguard-supply-chain-map',
+                        styles: [
+                            {
+                                "elementType": "geometry",
+                                "stylers": [{ "color": "#0f172a" }]
+                            },
+                            {
+                                "elementType": "labels.text.stroke",
+                                "stylers": [{ "color": "#0f172a" }]
+                            },
+                            {
+                                "elementType": "labels.text.fill",
+                                "stylers": [{ "color": "#64748b" }]
+                            },
+                            {
+                                "featureType": "administrative.locality",
+                                "elementType": "labels.text.fill",
+                                "stylers": [{ "color": "#94a3b8" }]
+                            },
+                            {
+                                "featureType": "poi",
+                                "elementType": "labels.text.fill",
+                                "stylers": [{ "color": "#475569" }]
+                            },
+                            {
+                                "featureType": "poi.park",
+                                "elementType": "geometry",
+                                "stylers": [{ "color": "#1e293b" }]
+                            },
+                            {
+                                "featureType": "poi.park",
+                                "elementType": "labels.text.fill",
+                                "stylers": [{ "color": "#475569" }]
+                            },
+                            {
+                                "featureType": "road",
+                                "elementType": "geometry",
+                                "stylers": [{ "color": "#1e293b" }]
+                            },
+                            {
+                                "featureType": "road",
+                                "elementType": "geometry.stroke",
+                                "stylers": [{ "color": "#334155" }]
+                            },
+                            {
+                                "featureType": "road.highway",
+                                "elementType": "geometry",
+                                "stylers": [{ "color": "#1e3a5f" }]
+                            },
+                            {
+                                "featureType": "road.highway",
+                                "elementType": "geometry.stroke",
+                                "stylers": [{ "color": "#1e3a5f" }]
+                            },
+                            {
+                                "featureType": "transit",
+                                "elementType": "geometry",
+                                "stylers": [{ "color": "#1e293b" }]
+                            },
+                            {
+                                "featureType": "water",
+                                "elementType": "geometry",
+                                "stylers": [{ "color": "#1e40af" }]
+                            },
+                            {
+                                "featureType": "water",
+                                "elementType": "labels.text.fill",
+                                "stylers": [{ "color": "#475569" }]
+                            }
+                        ],
+                    });
 
-                setMap(mapInstance);
-                setInfoWindow(new InfoWindow());
+                    setMap(mapInstance);
+                    setInfoWindow(new InfoWindow());
+                }
+            } catch (error) {
+                console.error('Failed to initialize Google Maps:', error);
+                // Fail silently - the loading indicator will remain
             }
         };
+
+        // Check if API key is configured
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+            console.warn('Google Maps API key not configured');
+            return;
+        }
 
         // Load the Google Maps script
         if (!window.google?.maps) {
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=marker&v=beta`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&v=beta`;
             script.async = true;
             script.defer = true;
             script.onload = () => initMap();
+            script.onerror = () => console.error('Failed to load Google Maps script');
             document.head.appendChild(script);
         } else {
             initMap();

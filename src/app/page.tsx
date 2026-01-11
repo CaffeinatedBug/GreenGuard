@@ -27,6 +27,7 @@ export default function Home() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showSimulateModal, setShowSimulateModal] = useState(false);
+  const [savingsKwh, setSavingsKwh] = useState(5000); // Initial value for demo
 
   // Get selected supplier object
   const selectedSupplier = suppliers.find(s => s.id === selectedSupplierId);
@@ -212,6 +213,13 @@ export default function Home() {
 
     setIotLogs(prev => [...prev, newDataPoint]);
 
+    // If anomaly detected, increment carbon savings
+    if (result.verdict === 'ANOMALY') {
+      const randomSavings = Math.floor(Math.random() * 201) + 100; // 100-300 kWh
+      setSavingsKwh(prev => prev + randomSavings);
+      setAgentLogs(prev => [...prev, `🌱 Carbon Impact: +${randomSavings} kWh saved by catching anomaly!`]);
+    }
+
     // Refresh pending audits if it's an anomaly or warning
     if (result.verdict !== 'VERIFIED') {
       const { data } = await fetchPendingAudits();
@@ -270,7 +278,7 @@ export default function Home() {
         {/* Main Content Area */}
         <div className="flex-1 p-6">
           {/* Stats Dashboard - KPI Cards */}
-          <StatsDashboard />
+          <StatsDashboard simulatedKwhSaved={savingsKwh} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Top - Energy Chart (spans 2 columns) */}

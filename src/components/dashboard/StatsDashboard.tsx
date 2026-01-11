@@ -3,24 +3,34 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, AlertTriangle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Clock, Leaf } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import CarbonReportModal from './CarbonReportModal';
 
 interface StatsData {
     total: number;
     verified: number;
     anomalies: number;
     pending: number;
+    kwhSaved: number;
+    co2Tonnes: number;
 }
 
-export default function StatsDashboard() {
+interface StatsDashboardProps {
+    simulatedKwhSaved?: number;
+}
+
+export default function StatsDashboard({ simulatedKwhSaved = 0 }: StatsDashboardProps) {
     const [stats, setStats] = useState<StatsData>({
         total: 0,
         verified: 0,
         anomalies: 0,
         pending: 0,
+        kwhSaved: 0,
+        co2Tonnes: 0,
     });
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         fetchStats();
@@ -46,7 +56,12 @@ export default function StatsDashboard() {
                 (a) => !a.human_action && ['PENDING', 'WARNING', 'ANOMALY'].includes(a.status)
             ).length || 0;
 
-            setStats({ total, verified, anomalies, pending });
+            // Calculate kWh saved (150 kWh per anomaly + simulated)
+            const dbSavings = anomalies * 150;
+            const totalKwh = dbSavings + simulatedKwhSaved;
+            const co2Tonnes = (totalKwh * 0.71) / 1000;
+
+            setStats({ total, verified, anomalies, pending, kwhSaved: totalKwh, co2Tonnes });
             setLoading(false);
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -91,55 +106,92 @@ export default function StatsDashboard() {
             iconColor: 'text-yellow-400',
             textColor: 'text-yellow-300',
         },
+        {
+            title: 'Carbon Impact',
+            value: `${stats.co2Tonnes.toFixed(2)} t`,
+            subtext: `${stats.co2Tonnes.toFixed(2)} Credits`,
+            icon: Leaf,
+            gradient: 'from-green-500/20 to-emerald-500/20',
+            borderColor: 'border-green-500/30',
+            iconColor: 'text-emerald-400',
+            textColor: 'text-emerald-300',
+            clickable: true,
+        },
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {cards.map((card, index) => {
-                const Icon = card.icon;
-                return (
-                    <motion.div
-                        key={card.title}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={`relative overflow-hidden rounded-xl border ${card.borderColor} bg-gradient-to-br ${card.gradient} backdrop-blur-sm p-5`}
-                    >
-                        {/* Shimmer effect */}
-                        {loading && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
-                        )}
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                {cards.map((card, index) => {
+                    const Icon = card.icon;
+                    return (
+                        <motion.div
+                            key={card.title}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            whileHover={card.clickable ? { scale: 1.05 } : {}}
+                            onClick={card.clickable ? () => setIsModalOpen(true) : undefined}
+                            className={`relative overflow-hidden rounded-xl border ${card.borderColor} bg-gradient-to-br ${card.gradient} backdrop-blur-sm p-5 ${card.clickable ? 'cursor-pointer hover:shadow-lg hover:shadow-emerald-500/20 transition-all' : ''
+                                }`}
+                        >
+                            {/* Shimmer effect */}
+                            {loading && (
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                            )}
 
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-slate-400 font-medium">{card.title}</p>
-                                <motion.p
-                                    key={card.value}
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className={`text-3xl font-bold ${card.textColor} mt-2`}
-                                >
-                                    {loading ? '—' : card.value}
-                                </motion.p>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-slate-400 font-medium">{card.title}</p>
+                                    <motion.p
+                                        key={typeof card.value === 'string' ? card.value : card.value}
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className={`text-3xl font-bold ${card.textColor} mt-2`}
+                                    >
+                                        {loading ? '—' : card.value}
+                                    </motion.p>
+                                    {card.subtext && (
+                                        <p className="text-xs text-slate-500 mt-1">{card.subtext}</p>
+                                    )}
+                                </div>
+                                <div className={`p-3 rounded-lg bg-slate-900/50 ${card.iconColor}`}>
+                                    <Icon className="w-6 h-6" />
+                                </div>
                             </div>
-                            <div className={`p-3 rounded-lg bg-slate-900/50 ${card.iconColor}`}>
-                                <Icon className="w-6 h-6" />
-                            </div>
-                        </div>
 
-                        {/* Animated pulse border */}
-                        {card.title === 'Pending Review' && stats.pending > 0 && (
-                            <motion.div
-                                animate={{
-                                    opacity: [0.5, 1, 0.5],
-                                }}
-                                transition={{ repeat: Infinity, duration: 2 }}
-                                className="absolute inset-0 border-2 border-yellow-500/30 rounded-xl pointer-events-none"
-                            />
-                        )}
-                    </motion.div>
-                );
-            })}
-        </div>
+                            {/* Animated pulse border */}
+                            {card.title === 'Pending Review' && stats.pending > 0 && (
+                                <motion.div
+                                    animate={{
+                                        opacity: [0.5, 1, 0.5],
+                                    }}
+                                    transition={{ repeat: Infinity, duration: 2 }}
+                                    className="absolute inset-0 border-2 border-yellow-500/30 rounded-xl pointer-events-none"
+                                />
+                            )}
+
+                            {/* Clickable indicator */}
+                            {card.clickable && (
+                                <motion.div
+                                    animate={{
+                                        opacity: [0.3, 0.6, 0.3],
+                                    }}
+                                    transition={{ repeat: Infinity, duration: 3 }}
+                                    className="absolute inset-0 border-2 border-emerald-500/30 rounded-xl pointer-events-none"
+                                />
+                            )}
+                        </motion.div>
+                    );
+                })}
+            </div>
+
+            {/* Carbon Report Modal */}
+            <CarbonReportModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                totalKwhSaved={stats.kwhSaved}
+            />
+        </>
     );
 }
